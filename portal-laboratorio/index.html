@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedCloud - LIS Portal</title>
+    
+    <!-- Novo Arquivo de Estilos (Design Premium) -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Ícones Phosphor -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- SDK Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+</head>
+
+<body>
+
+    <!-- Tela de Login -->
+    <div id="loginScreen" class="card">
+        <div style="width: 72px; height: 72px; background: linear-gradient(135deg, var(--brand), #3b82f6); border-radius: 20px; display: flex; align-items: center; justify-content: center; color: white; font-size: 36px; margin: 0 auto 32px; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);">
+            <i class="ph ph-heartbeat"></i>
+        </div>
+        <h2 style="text-align: center;">MedCloud LIS</h2>
+        <p class="subtitle" style="text-align: center;">Portal Administrativo Seguro</p>
+
+        <div class="form-group">
+            <label>Usuário</label>
+            <div class="input-wrapper">
+                <i class="ph ph-user"></i>
+                <input type="text" id="userLogin" placeholder="Digite seu usuário" autocapitalize="none" autocorrect="off">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>Senha</label>
+            <div class="input-wrapper">
+                <i class="ph ph-lock-key"></i>
+                <input type="password" id="passLogin" placeholder="••••••••" autocapitalize="none" autocorrect="off">
+            </div>
+        </div>
+        
+        <button onclick="window.fazerLogin()" style="margin-bottom: 32px;">
+            Acessar Sistema <i class="ph ph-arrow-right"></i>
+        </button>
+
+        <div style="padding-top: 24px; border-top: 1px solid var(--border); text-align: center;">
+            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 16px; font-weight: 500;">
+                Paciente? Baixe seus laudos no celular
+            </p>
+            <a href="https://github.com/tiaginhoeumesmo-oss/medcloud-app/releases/download/v1.0.0/prontuario-app.apk"
+                download="MedCloud-Paciente.apk" class="btn-outline">
+                <i class="ph ph-android-logo" style="font-size: 24px; color: #10b981;"></i> 
+                Baixar App (APK)
+            </a>
+        </div>
+    </div>
+
+    <!-- Tela de Dashboard -->
+    <div id="dashboardScreen" class="card">
+        <div class="dashboard-header">
+            <div class="header-title">
+                <h2>Módulo de Transmissão</h2>
+                <p class="subtitle">Envio Inteligente para o Prontuário do Paciente</p>
+            </div>
+            <button onclick="window.sair()" class="btn-danger">
+                <i class="ph ph-sign-out"></i> Sair
+            </button>
+        </div>
+
+        <div class="grid-2">
+            <!-- Coluna Esquerda: Entrada de Dados Básicos -->
+            <div class="box">
+                <h3><i class="ph ph-file-pdf" style="color: #ef4444; font-size: 24px;"></i> 1. Documento do Paciente</h3>
+                
+                <div class="form-group">
+                    <label>ID do Paciente</label>
+                    <div class="input-wrapper">
+                        <i class="ph ph-identification-card"></i>
+                        <input type="text" id="patientId" placeholder="Ex: 510004" maxlength="10">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Categoria Clínica</label>
+                    <div class="input-wrapper">
+                        <i class="ph ph-folders"></i>
+                        <select id="category" onchange="window.alternarPaineis()">
+                            <option value="Laboratoriais">Exames Laboratoriais (Leitura Automática)</option>
+                            <option value="Imagem">Exames de Imagem (PACS)</option>
+                            <option value="Anatomopatológicos">Anatomopatológicos</option>
+                            <option value="Outros">Outros Documentos</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Laudo PDF Original</label>
+                    <label class="file-upload-wrapper">
+                        <div class="file-upload-content">
+                            <i class="ph ph-upload-simple"></i>
+                            <span id="fileNameDisplay">Clique para anexar PDF</span>
+                        </div>
+                        <input type="file" id="fileInput" accept=".pdf">
+                    </label>
+                </div>
+            </div>
+
+            <!-- Coluna Direita: Fluxos Específicos e Envio -->
+            <div class="box">
+                <!-- Fluxo Laboratório (IA) -->
+                <div id="boxLaboratorio" class="active">
+                    <h3><i class="ph ph-flask" style="color: #8b5cf6; font-size: 24px;"></i> 2. Leitura Automatizada (Laboratório)</h3>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+                        Preencha os valores críticos ou deixe em branco para o <strong>servidor</strong> extrair automaticamente do PDF.
+                    </p>
+                    
+                    <div class="json-panel">
+                        <div class="json-grid">
+                            <div class="json-item">
+                                <label>Hemoglobina (g/dL)</label>
+                                <input type="number" id="valHemo" placeholder="Automático" step="0.1">
+                            </div>
+                            <div class="json-item">
+                                <label>Leucócitos (/mm³)</label>
+                                <input type="number" id="valLeuco" placeholder="Automático">
+                            </div>
+                            <div class="json-item">
+                                <label>Glicose (mg/dL)</label>
+                                <input type="number" id="valGlico" placeholder="Automático" step="0.1">
+                            </div>
+                            <div class="json-item">
+                                <label>Potássio (mEq/L)</label>
+                                <input type="number" id="valPota" placeholder="Automático" step="0.1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fluxo PACS (Imagem) -->
+                <div id="boxImagem">
+                    <h3><i class="ph ph-image" style="color: #0ea5e9; font-size: 24px;"></i> 2. Integração PACS (Imagem)</h3>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+                        Insira o link seguro do visualizador DICOM/PACS para acesso remoto.
+                    </p>
+                    
+                    <div class="form-group">
+                        <label>Link PACS Viewer</label>
+                        <div class="input-wrapper">
+                            <i class="ph ph-link"></i>
+                            <input type="url" id="pacsLink" placeholder="https://pacs.hospital.com/viewer?id=...">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fluxo Padrão (Outros) -->
+                <div id="boxOutros">
+                    <h3><i class="ph ph-file-text" style="color: #f59e0b; font-size: 24px;"></i> 2. Envio Direto</h3>
+                    <div class="info-alert">
+                        <i class="ph ph-info"></i>
+                        <p>Para laudos desta categoria, não há extração automatizada de dados nem vínculo com visualizador PACS. O PDF será arquivado e entregue ao paciente de forma integral.</p>
+                    </div>
+                    <br>
+                </div>
+
+                <!-- Botão de Envio e Status -->
+                <button id="sendBtn" onclick="window.sendFile()">
+                    <i class="ph ph-paper-plane-tilt"></i> Enviar e Processar
+                </button>
+                <div id="statusMessage" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Novo Arquivo de Lógica -->
+    <script src="app.js"></script>
+</body>
+</html>
